@@ -54,7 +54,7 @@ The directory name is the preset id (here `auto`) and must match `[a-z0-9][a-z0-
 
 ### 2. Select the preset
 
-**Option A — Web UI**: Settings → General → Agent Preset, choose "自动模式（Auto Mode）".
+**Option A — Web UI**: Settings → General → Agent Preset, choose "自动模式 / Auto Mode".
 
 **Option B — set as default** (new sessions use it automatically): add to `~/.dsh/settings.yaml`:
 
