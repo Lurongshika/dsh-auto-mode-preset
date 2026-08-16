@@ -48,6 +48,8 @@
       [preset: <name>] <one-line reason> — <next action>
       Example: [preset: minimal] single-file tweak, one edit — locate the file, then edit.
 
+      Language: detect the language the user is writing in and match it for the declaration and every reply. The discipline names (standard / minimal / code / cordis) stay as identifiers; translate only the reason and the next action. Example for a Chinese request: [preset: minimal] 单文件小改 — 先定位文件再改。
+
       Keep the analysis brief. Do not re-run this routing for every sub-step of one task. If you misjudged, upgrade to standard and say so in one line. Never stop to wait for a manual switch: proceed under the chosen discipline.
 
 - id: agent-instructions

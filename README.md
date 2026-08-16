@@ -1,75 +1,79 @@
-# Auto Mode（自动模式）— DSH Agent Preset
+# Auto Mode (自动模式) — DSH Agent Preset
 
-一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的 Agent Preset：在**每次处理新任务前**先简短分析任务，自动从 `standard` / `minimal` / `code` / `cordis` 四种工作纪律中选出最合适的一种，声明选择并执行。
+English | [中文](README.zh.md)
 
-它基于 `standard`（完整工具集），并额外打包了 `cordis` 预设的两个创作技能，让「cordis 纪律」真正可用（而非只是口头建议）。
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) agent preset that, **before every new task**, briefly analyzes the task and automatically picks the most appropriate working discipline from `standard` / `minimal` / `code` / `cordis`, declares the choice, and follows it.
 
-## 工作原理
+It builds on `standard` (the full tool set) and additionally bundles the two authoring skills from the `cordis` preset, so the `cordis` discipline is a real capability rather than a verbal suggestion.
 
-Persona 把每个新任务变成一次简短的路由决策。动手前先分类，再按下面的判定顺序选择纪律：
+## How it works
 
-| 判定顺序 | 纪律 | 何时选用 | 行为约束 |
+The persona turns each new task into a brief routing decision. Before acting, classify the task and pick a discipline in this order:
+
+| Order | Discipline | When to choose | Behavioral constraint |
 |---|---|---|---|
-| 1 | **cordis** | 创作 / 调试 / 审查 harness 自身：插件、preset、`cordis.patch.yml`、skill | 先加载 `editing-cordis-compositions`（或 `cordis-plugin-development`），遵守 host 平面 vs agent 平面 |
-| 2 | **minimal** | 一条 shell 命令或一处小文件编辑 | 只用 `bash` 与 `str_replace_editor` |
-| 3 | **code** | 多步、确定性、可脚本化（批量改写 / 生成 / 数据搬运） | 优先写一个 TypeScript/Node 程序一次运行，减少工具往返 |
-| 4 | **standard** | 其余一切（跨文件浏览 + 编辑 + 运行 + 检索 + 规划） | 完整工具集正常使用 |
+| 1 | **cordis** | Authoring / debugging / reviewing the harness itself: a plugin, a preset, `cordis.patch.yml`, or a skill | Load `editing-cordis-compositions` (or `cordis-plugin-development`) first; respect the host-plane vs agent-plane split |
+| 2 | **minimal** | One shell command or one small file edit | Use only `bash` and `str_replace_editor` |
+| 3 | **code** | Multi-step, deterministic, scriptable work (batch rewrite / generation / data movement) | Prefer writing one TypeScript/Node program and running it once, cutting tool round-trips |
+| 4 | **standard** | Everything else (cross-file browse + edit + run + search + plan) | Use the full tool set normally |
 
-动手前先输出一行声明：
+Before acting, print a one-line declaration:
 
 ```
-[preset: <name>] <一句话理由> — <下一步行动>
+[preset: <name>] <one-line reason> — <next action>
 ```
 
-例：`[preset: minimal] 单文件小改，只需编辑一处 — 先定位目标文件再改。`
+Example: `[preset: minimal] single-file tweak, one edit — locate the file, then edit.`
 
-不确定时选 `standard`；不要为每个子步骤重复触发路由；若误判，升级到 `standard` 并一句话说明；**绝不停下等待手动切换**。
+When unsure, pick `standard`. Do not re-run the routing for every sub-step of one task. If you misjudged, upgrade to `standard` and say so in one line. **Never stop to wait for a manual switch.**
 
-## 目录结构
+The declaration and every reply follow the language the user writes in (the discipline names `standard` / `minimal` / `code` / `cordis` stay as identifiers; only the reason and next action are translated).
+
+## Directory layout
 
 ```
 auto/
-  preset.yml           # 显示名 / 描述 / 排序（order: 0 排最前）
-  agent.cordis.yml     # 组合：standard 完整工具集 + 自动路由 persona + 创作技能
+  preset.yml           # display name / description / order (order: 0 sorts first)
+  agent.cordis.yml     # composition: standard's full tool set + auto-routing persona + authoring skills
   skills/
     editing-cordis-compositions/SKILL.md
     cordis-plugin-development/SKILL.md
 ```
 
-## 安装 / 配置方法
+## Install / configure
 
-### 1. 安装到本机
+### 1. Install locally
 
 ```sh
 mkdir -p ~/.dsh/.agent-presets
-git clone <你的仓库地址> ~/.dsh/.agent-presets/auto
-# 或者：把本仓库全部内容复制到 ~/.dsh/.agent-presets/auto/
+git clone <your-repo-url> ~/.dsh/.agent-presets/auto
+# or: copy this repository's contents into ~/.dsh/.agent-presets/auto/
 ```
 
-目录名就是 preset id（这里是 `auto`），必须匹配 `[a-z0-9][a-z0-9-]*`。
+The directory name is the preset id (here `auto`) and must match `[a-z0-9][a-z0-9-]*`.
 
-### 2. 选择该 preset
+### 2. Select the preset
 
-**方式 A — Web UI**：设置 → 通用 → Agent Preset，选择「自动模式（Auto Mode）」。
+**Option A — Web UI**: Settings → General → Agent Preset, choose "自动模式（Auto Mode）".
 
-**方式 B — 设为默认**（新会话自动使用）：在 `~/.dsh/settings.yaml` 增加：
+**Option B — set as default** (new sessions use it automatically): add to `~/.dsh/settings.yaml`:
 
 ```yaml
 agent-presets:
   default: auto
 ```
 
-### 3. 验证
+### 3. Verify
 
-新建会话后发一条任务，若 persona 生效，动手前会出现一行 `[preset: ...]` 声明。
+Create a new session and send a task; if the persona is active, a `[preset: ...]` declaration line appears before it starts working.
 
-## 技术说明（重要）
+## Technical notes (important)
 
-- 一个 preset 由 `dsh-agent-presets` 在**会话创建时挂载一次**；会话进行中无法切换。
-- 因此「自动选择」是**行为纪律**（用哪些工具、如何组织工作），不是运行时的插件重挂载。`minimal` 靠「只用 bash + str_replace_editor」来近似，`code` 靠「写一个程序一次跑」来近似。
-- `cordis` 纪律是真实能力：本预设随附两个创作技能，并遵守 host / agent 两平面归属规则。
-- 若要在**会话创建前**按首条消息真正切换 preset，需要写一个 host 插件接管 `AgentPresets.mount(agentCtx, id)`（会话工厂的 `setup` 钩子），这属于对 Web 会话创建路径的侵入式改动，不在本预设范围内。
+- A preset is mounted **once at session creation** by `dsh-agent-presets`; it cannot be switched mid-conversation.
+- "Auto selection" is therefore a **behavioral discipline** (which tools to use, how to structure the work), not a runtime plugin re-mount. `minimal` is approximated by "only use bash + str_replace_editor", `code` by "write one program and run it once".
+- The `cordis` discipline is a real capability: this preset ships the two authoring skills and respects the host / agent plane ownership rules.
+- To truly switch presets **before session creation** based on the first message, you would write a host plugin that takes over `AgentPresets.mount(agentCtx, id)` (the agent factory's `setup` hook) — an invasive change to the web session-creation path, outside this preset's scope.
 
-## 自定义
+## Customize
 
-复制 `agent.cordis.yml`，改 `persona` 行的 `text` 即可。`{{model}}` 与 `{{cwd}}` 会在挂载时解析为当前模型与工作目录。
+Copy `agent.cordis.yml` and edit the `persona` row's `text`. `{{model}}` and `{{cwd}}` resolve at mount time to the current model and working directory.
