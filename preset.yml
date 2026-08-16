@@ -1,0 +1,3 @@
+name: 自动模式（Auto Mode）
+description: 每次任务前先简短分析，自动在 standard / minimal / code / cordis 四种工作纪律中选出最合适的一种并声明执行；具备标准模式的完整工具集，并附带 Cordis 创作技能。
+order: 0
