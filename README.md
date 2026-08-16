@@ -63,7 +63,7 @@ agent-presets:
 
 新建会话后发一条任务，若 persona 生效，动手前会出现一行 `[preset: ...]` 声明。
 
-## 技术说明（重要）
+## 技术说明
 
 - 一个 preset 由 `dsh-agent-presets` 在**会话创建时挂载一次**；会话进行中无法切换。
 - 因此「自动选择」是**行为纪律**（用哪些工具、如何组织工作），不是运行时的插件重挂载。`minimal` 靠「只用 bash + str_replace_editor」来近似，`code` 靠「写一个程序一次跑」来近似。
