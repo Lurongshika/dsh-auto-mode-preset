@@ -32,7 +32,7 @@ Persona 把每个新任务变成一次简短的路由决策。动手前先分类
 ## 目录结构
 
 ```
-auto/
+adaptive/
   preset.yml           # 显示名 / 描述 / 排序（order: 0 排最前）
   agent.cordis.yml     # 组合：standard 完整工具集 + 自动路由 persona + 创作技能
   skills/
@@ -46,11 +46,11 @@ auto/
 
 ```sh
 mkdir -p ~/.dsh/.agent-presets
-git clone <你的仓库地址> ~/.dsh/.agent-presets/auto
-# 或者：把本仓库全部内容复制到 ~/.dsh/.agent-presets/auto/
+git clone <你的仓库地址> ~/.dsh/.agent-presets/adaptive
+# 或者：把本仓库全部内容复制到 ~/.dsh/.agent-presets/adaptive/
 ```
 
-目录名就是 preset id（这里是 `auto`），必须匹配 `[a-z0-9][a-z0-9-]*`。
+目录名就是 preset id（这里是 `adaptive`），必须匹配 `[a-z0-9][a-z0-9-]*`。
 
 ### 2. 选择该 preset
 
@@ -60,7 +60,7 @@ git clone <你的仓库地址> ~/.dsh/.agent-presets/auto
 
 ```yaml
 agent-presets:
-  default: auto
+  default: adaptive
 ```
 
 ### 3. 验证

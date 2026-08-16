@@ -32,9 +32,9 @@ The declaration and every reply follow the language the user writes in (the disc
 ## Directory layout
 
 ```
-auto/
+adaptive/
   preset.yml           # display name / description / order (order: 0 sorts first)
-  agent.cordis.yml     # composition: standard's full tool set + auto-routing persona + authoring skills
+  agent.cordis.yml     # composition: standard's full tool set + adaptive-routing persona + authoring skills
   skills/
     editing-cordis-compositions/SKILL.md
     cordis-plugin-development/SKILL.md
@@ -46,11 +46,11 @@ auto/
 
 ```sh
 mkdir -p ~/.dsh/.agent-presets
-git clone <your-repo-url> ~/.dsh/.agent-presets/auto
-# or: copy this repository's contents into ~/.dsh/.agent-presets/auto/
+git clone <your-repo-url> ~/.dsh/.agent-presets/adaptive
+# or: copy this repository's contents into ~/.dsh/.agent-presets/adaptive/
 ```
 
-The directory name is the preset id (here `auto`) and must match `[a-z0-9][a-z0-9-]*`.
+The directory name is the preset id (here `adaptive`) and must match `[a-z0-9][a-z0-9-]*`.
 
 ### 2. Select the preset
 
@@ -60,7 +60,7 @@ The directory name is the preset id (here `auto`) and must match `[a-z0-9][a-z0-
 
 ```yaml
 agent-presets:
-  default: auto
+  default: adaptive
 ```
 
 ### 3. Verify

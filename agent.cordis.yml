@@ -1,4 +1,4 @@
-# The `auto` agent preset: Adaptive Mode (自适应模式) — the standard coding agent, plus
+# The `adaptive` agent preset: Adaptive Mode (自适应模式) — the standard coding agent, plus
 # per-task discipline routing and the bundled Cordis composition-authoring skills.
 #
 # Everything in `standard` is here unchanged. What changes is the persona, which
