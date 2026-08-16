@@ -67,7 +67,7 @@ agent-presets:
 
 Create a new session and send a task; if the persona is active, a `[preset: ...]` declaration line appears before it starts working.
 
-## Technical notes (important)
+## Technical notes
 
 - A preset is mounted **once at session creation** by `dsh-agent-presets`; it cannot be switched mid-conversation.
 - "Auto selection" is therefore a **behavioral discipline** (which tools to use, how to structure the work), not a runtime plugin re-mount. `minimal` is approximated by "only use bash + str_replace_editor", `code` by "write one program and run it once".
