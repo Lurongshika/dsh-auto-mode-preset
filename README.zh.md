@@ -1,4 +1,4 @@
-# Auto Mode（自动模式）— DSH Agent Preset
+# Adaptive Mode（自适应模式）— DSH Agent Preset
 
 [English](README.md) | 中文
 
@@ -54,7 +54,7 @@ git clone <你的仓库地址> ~/.dsh/.agent-presets/auto
 
 ### 2. 选择该 preset
 
-**方式 A — Web UI**：设置 → 通用 → Agent Preset，选择「自动模式 / Auto Mode」。
+**方式 A — Web UI**：设置 → 通用 → Agent Preset，选择「自适应模式 / Adaptive Mode」。
 
 **方式 B — 设为默认**（新会话自动使用）：在 `~/.dsh/settings.yaml` 增加：
 

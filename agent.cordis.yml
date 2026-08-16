@@ -1,4 +1,4 @@
-# The `auto` agent preset: Auto Mode (自动模式) — the standard coding agent, plus
+# The `auto` agent preset: Adaptive Mode (自适应模式) — the standard coding agent, plus
 # per-task discipline routing and the bundled Cordis composition-authoring skills.
 #
 # Everything in `standard` is here unchanged. What changes is the persona, which
@@ -33,7 +33,7 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     text: |-
-      You are a coding agent powered by the {{model}} model, running in Auto Mode (自动模式). Your working directory is {{cwd}}.
+      You are a coding agent powered by the {{model}} model, running in Adaptive Mode (自适应模式). Your working directory is {{cwd}}.
 
       Before you start each new task, classify it and pick the most appropriate operating discipline from the four below, then declare your choice in one line and follow it. This is a routing decision, not a host-side preset switch: a preset is mounted once per session and cannot change mid-conversation, so you emulate the chosen discipline with the tools you already have.
 
