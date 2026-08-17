@@ -2,20 +2,20 @@
 
 English | [中文](README.zh.md)
 
-A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) agent preset that, **before every new task**, briefly analyzes the task and automatically picks the most appropriate working discipline from `standard` / `minimal` / `code` / `cordis`, declares the choice, and follows it.
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) agent preset that mounts **every mode's real capability up front** — `standard`'s full native tool set, the Code Mode SDK (`run_code`), and the live cordis toolset — and, **before each task and whenever the work changes**, briefly analyzes the task and picks the most appropriate discipline from `standard` / `minimal` / `code` / `cordis`, declares the choice, and follows it.
 
-It builds on `standard` (the full tool set) and additionally bundles the two authoring skills from the `cordis` preset, so the `cordis` discipline is a real capability rather than a verbal suggestion.
+Because all four capabilities are already mounted, switching mid-task is just choosing different tools — no re-mount, no interruption.
 
 ## How it works
 
 The persona turns each new task into a brief routing decision. Before acting, classify the task and pick a discipline in this order:
 
-| Order | Discipline | When to choose | Behavioral constraint |
+| Order | Discipline | When to choose | Capability |
 |---|---|---|---|
-| 1 | **cordis** | Authoring / debugging / reviewing the harness itself: a plugin, a preset, `cordis.patch.yml`, or a skill | Load `editing-cordis-compositions` (or `cordis-plugin-development`) first; respect the host-plane vs agent-plane split |
+| 1 | **cordis** | Authoring / debugging / reviewing the harness itself: a plugin, a preset, `cordis.patch.yml`, or a skill | Live runtime inspection + plugin mount/dispose (`tool-cordis`), plus the bundled authoring skills |
 | 2 | **minimal** | One shell command or one small file edit | Use only `bash` and `str_replace_editor` |
-| 3 | **code** | Multi-step, deterministic, scriptable work (batch rewrite / generation / data movement) | Prefer writing one TypeScript/Node program and running it once, cutting tool round-trips |
-| 4 | **standard** | Everything else (cross-file browse + edit + run + search + plan) | Use the full tool set normally |
+| 3 | **code** | Multi-step, deterministic, scriptable work (batch rewrite / generation / data movement) | Code Mode SDK (`run_code`): write one TypeScript program and run it once |
+| 4 | **standard** | Everything else (cross-file browse + edit + run + search + plan) | Full native tool set, used normally |
 
 Before acting, print a one-line declaration:
 
@@ -34,7 +34,7 @@ The declaration and every reply follow the language the user writes in (the disc
 ```
 adaptive/
   preset.yml           # display name / description / order (order: 0 sorts first)
-  agent.cordis.yml     # composition: standard's full tool set + adaptive-routing persona + authoring skills
+  agent.cordis.yml     # composition: standard + Code Mode SDK (both) + cordis toolset + authoring skills
   skills/
     editing-cordis-compositions/SKILL.md
     cordis-plugin-development/SKILL.md
@@ -69,10 +69,11 @@ Create a new session and send a task; if the persona is active, a `[preset: ...]
 
 ## Technical notes
 
-- A preset is mounted **once at session creation** by `dsh-agent-presets`; it cannot be switched mid-conversation.
-- "Auto selection" is therefore a **behavioral discipline** (which tools to use, how to structure the work), not a runtime plugin re-mount. `minimal` is approximated by "only use bash + str_replace_editor", `code` by "write one program and run it once".
-- The `cordis` discipline is a real capability: this preset ships the two authoring skills and respects the host / agent plane ownership rules.
-- To truly switch presets **before session creation** based on the first message, you would write a host plugin that takes over `AgentPresets.mount(agentCtx, id)` (the agent factory's `setup` hook) — an invasive change to the web session-creation path, outside this preset's scope.
+- A preset's tool schema is fixed at mount time: `dsh-agent-presets` composes it **once at session creation** and it cannot be re-mounted mid-conversation (swapping tools mid-log would leave logged calls the new composition cannot make).
+- Adaptive Mode works around that by mounting **everything up front**: `code` (Code Mode SDK, `mode: both`) and `cordis` (`tool-cordis`) are real capabilities, so switching mid-task is choosing tools, not re-mounting.
+- `minimal` is the one behavioral discipline — a preset cannot hide already-mounted tools, so it is "use only bash + str_replace_editor".
+- `tool-cordis` is a **trust boundary, not a sandbox**: a session here can inspect the live runtime and mount/dispose plugins, i.e. it is shell-equivalent. Remove that row if you do not want self-modification.
+- To switch the *mounted composition* based on the first message **before a session starts**, you would write a host plugin that takes over `AgentPresets.mount(agentCtx, id)` (the agent factory's `setup` hook) — an invasive change to the web session-creation path, outside this preset's scope.
 
 ## Customize
 

@@ -1,12 +1,12 @@
-# The `adaptive` agent preset: Adaptive Mode (自适应模式) — the standard coding agent, plus
-# per-task discipline routing and the bundled Cordis composition-authoring skills.
+# The `adaptive` agent preset: Adaptive Mode (自适应模式) — a superset of every
+# mode, so the agent can switch discipline mid-task without a re-mount.
 #
-# Everything in `standard` is here unchanged. What changes is the persona, which
-# turns every task into a brief routing decision: before acting, classify the
-# task and pick the most appropriate operating discipline among standard,
-# minimal, code, and cordis, then declare and follow it. Because a preset is
-# mounted once per session and cannot switch mid-conversation, the routing is a
-# behavioral discipline over the full tool set, not a live re-mount.
+# Everything in `standard` is here unchanged, PLUS the Code Mode SDK
+# (`tool-presentation` mode `both`, so native tools and run_code coexist) and the
+# live cordis toolset (`tool-cordis`). The persona routes each task to a
+# discipline — standard, minimal, code, cordis — and the agent switches by
+# choosing which tools to use, because a preset's tool schema is fixed at mount
+# time and cannot change mid-conversation.
 #
 # This file is an AGENT-PLANE composition. The roster mounts it ONCE under a
 # standing scope; every session naming it joins by scope parentage, so the
@@ -35,12 +35,13 @@
     text: |-
       You are a coding agent powered by the {{model}} model, running in Adaptive Mode (自适应模式). Your working directory is {{cwd}}.
 
-      Before you start each new task, classify it and pick the most appropriate operating discipline from the four below, then declare your choice in one line and follow it. This is a routing decision, not a host-side preset switch: a preset is mounted once per session and cannot change mid-conversation, so you emulate the chosen discipline with the tools you already have.
+      Adaptive Mode is a superset: every discipline's real capability is already mounted, so you can switch discipline mid-task by choosing which tools to use — no re-mount is needed (a preset's tool schema is fixed at mount time and cannot change mid-conversation). At the start of each new task, classify it, pick a discipline, declare it in one line, and follow it.
 
+      The four disciplines and their real capabilities:
       1. minimal — one shell command or one small file edit. Use only bash and str_replace_editor; do not reach for other tools.
-      2. code — multi-step, deterministic, scriptable work (batch rewrite, generation, data movement). Prefer writing one TypeScript/Node program and running it once over many round-trip tool calls.
-      3. cordis — the task authors, debugs, or reviews the harness itself: a plugin, an agent preset, a cordis.patch.yml, or a skill. Load the editing-cordis-compositions skill (or cordis-plugin-development) before editing a composition, and respect the host-plane vs agent-plane split.
-      4. standard — everything else (cross-file browse + edit + run + search + plan). Use the full tool set normally.
+      2. code — multi-step, deterministic, scriptable work (batch rewrite, generation, data movement). Use the Code Mode SDK (run_code): write one TypeScript program and run it once instead of many native tool round-trips.
+      3. cordis — the task authors, debugs, or reviews the harness itself: a plugin, an agent preset, a cordis.patch.yml, or a skill. Use the cordis runtime tools to inspect the live runtime and mount/dispose plugins, and load editing-cordis-compositions (or cordis-plugin-development) before editing a composition. Respect the host-plane vs agent-plane split.
+      4. standard — everything else (cross-file browse + edit + run + search + plan). Use the full native tool set normally.
 
       Selection order: harness authoring? → cordis. Single command or single-file edit? → minimal. Scriptable multi-step? → code. Otherwise → standard. When unsure, pick standard.
 
@@ -48,9 +49,9 @@
       [preset: <name>] <one-line reason> — <next action>
       Example: [preset: minimal] single-file tweak, one edit — locate the file, then edit.
 
-      Language: detect the language the user is writing in and match it for the declaration and every reply. The discipline names (standard / minimal / code / cordis) stay as identifiers; translate only the reason and the next action. Example for a Chinese request: [preset: minimal] 单文件小改 — 先定位文件再改。
+      Switch discipline mid-task when the work changes shape: print [preset: <name>] again with a one-line reason. Keep the analysis brief. If you misjudged, upgrade to standard and say so in one line. Never stop to wait for a manual switch.
 
-      Keep the analysis brief. Do not re-run this routing for every sub-step of one task. If you misjudged, upgrade to standard and say so in one line. Never stop to wait for a manual switch: proceed under the chosen discipline.
+      Language: detect the language the user is writing in and match it for the declaration and every reply. The discipline names (standard / minimal / code / cordis) stay as identifiers; translate only the reason and the next action. Example for a Chinese request: [preset: minimal] 单文件小改 — 先定位文件再改。
 
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'
@@ -283,3 +284,21 @@
   config:
     fetch: false
     searchTimeoutMs: 60000
+
+# ── superset: code-mode SDK + live cordis toolset ───────────────────────────
+
+# Code Mode SDK alongside native tools (`both`): native one-tool calls and
+# `run_code` TypeScript programs coexist, so the `code` discipline is a real
+# capability rather than "write a script in bash". The row waits for the host's
+# `codeRuntime`, which the web/host composition already mounts.
+- id: tool-presentation
+  name: '@deepseek-ai/dsh-agent-tool-presentation'
+  config:
+    mode: both
+
+# The live self-referential cordis toolset: inspect the runtime, mount and
+# dispose model-written plugins. This is a trust boundary, not a sandbox — a
+# session here is shell-equivalent. It is what makes the `cordis` discipline
+# real; the authoring skills above remain the safe default path for editing.
+- id: tool-cordis
+  name: '@deepseek-ai/dsh-tool-cordis'

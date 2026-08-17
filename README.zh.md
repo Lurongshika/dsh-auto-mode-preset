@@ -2,20 +2,20 @@
 
 [English](README.md) | 中文
 
-一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的 Agent Preset：在**每次处理新任务前**先简短分析任务，自动从 `standard` / `minimal` / `code` / `cordis` 四种工作纪律中选出最合适的一种，声明选择并执行。
+一个 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的 Agent Preset：**预先挂载每一种模式的真实能力**——`standard` 的完整原生工具集、Code Mode SDK（`run_code`）、以及实时 cordis 工具集；并在**每次任务开始时、以及任务中工作发生变化时**，简短分析任务，从 `standard` / `minimal` / `code` / `cordis` 中选出最合适的纪律，声明并执行。
 
-它基于 `standard`（完整工具集），并额外打包了 `cordis` 预设的两个创作技能，让「cordis 纪律」真正可用（而非只是口头建议）。
+因为四种能力都已挂载，任务中切换纪律只是「改用哪组工具」，无需重挂载、不会中断。
 
 ## 工作原理
 
 Persona 把每个新任务变成一次简短的路由决策。动手前先分类，再按下面的判定顺序选择纪律：
 
-| 判定顺序 | 纪律 | 何时选用 | 行为约束 |
+| 判定顺序 | 纪律 | 何时选用 | 能力 |
 |---|---|---|---|
-| 1 | **cordis** | 创作 / 调试 / 审查 harness 自身：插件、preset、`cordis.patch.yml`、skill | 先加载 `editing-cordis-compositions`（或 `cordis-plugin-development`），遵守 host 平面 vs agent 平面 |
+| 1 | **cordis** | 创作 / 调试 / 审查 harness 自身：插件、preset、`cordis.patch.yml`、skill | 实时运行时检查 + 插件挂载/卸载（`tool-cordis`），外加随附的创作技能 |
 | 2 | **minimal** | 一条 shell 命令或一处小文件编辑 | 只用 `bash` 与 `str_replace_editor` |
-| 3 | **code** | 多步、确定性、可脚本化（批量改写 / 生成 / 数据搬运） | 优先写一个 TypeScript/Node 程序一次运行，减少工具往返 |
-| 4 | **standard** | 其余一切（跨文件浏览 + 编辑 + 运行 + 检索 + 规划） | 完整工具集正常使用 |
+| 3 | **code** | 多步、确定性、可脚本化（批量改写 / 生成 / 数据搬运） | Code Mode SDK（`run_code`）：写一个 TypeScript 程序一次跑完 |
+| 4 | **standard** | 其余一切（跨文件浏览 + 编辑 + 运行 + 检索 + 规划） | 完整原生工具集正常使用 |
 
 动手前先输出一行声明：
 
@@ -34,7 +34,7 @@ Persona 把每个新任务变成一次简短的路由决策。动手前先分类
 ```
 adaptive/
   preset.yml           # 显示名 / 描述 / 排序（order: 0 排最前）
-  agent.cordis.yml     # 组合：standard 完整工具集 + 自动路由 persona + 创作技能
+  agent.cordis.yml     # 组合：standard + Code Mode SDK（both）+ cordis 工具集 + 创作技能
   skills/
     editing-cordis-compositions/SKILL.md
     cordis-plugin-development/SKILL.md
@@ -69,10 +69,11 @@ agent-presets:
 
 ## 技术说明
 
-- 一个 preset 由 `dsh-agent-presets` 在**会话创建时挂载一次**；会话进行中无法切换。
-- 因此「自动选择」是**行为纪律**（用哪些工具、如何组织工作），不是运行时的插件重挂载。`minimal` 靠「只用 bash + str_replace_editor」来近似，`code` 靠「写一个程序一次跑」来近似。
-- `cordis` 纪律是真实能力：本预设随附两个创作技能，并遵守 host / agent 两平面归属规则。
-- 若要在**会话创建前**按首条消息真正切换 preset，需要写一个 host 插件接管 `AgentPresets.mount(agentCtx, id)`（会话工厂的 `setup` 钩子），这属于对 Web 会话创建路径的侵入式改动，不在本预设范围内。
+- 一个 preset 的工具 schema 在挂载时即固定：`dsh-agent-presets` 在**会话创建时组合一次**，会话中无法重挂载（中途换工具会让已记录的工具调用在新组合里无法复现）。
+- 自适应模式的对策是**把一切都预先挂载**：`code`（Code Mode SDK，`mode: both`）与 `cordis`（`tool-cordis`）是真实能力，所以任务中切换就是「改用哪组工具」，而非重挂载。
+- `minimal` 是唯一的「行为纪律」——preset 无法隐藏已挂载的工具，所以它只是「只用 bash + str_replace_editor」。
+- `tool-cordis` 是**信任边界，不是沙箱**：使用该预设的会话可以检查实时运行时、挂载/卸载插件，等价于 shell 权限。如不想要自我修改能力，删掉这一行即可。
+- 若要在**会话开始前**按首条消息切换「挂载的组合」，需要写一个 host 插件接管 `AgentPresets.mount(agentCtx, id)`（会话工厂的 `setup` 钩子），这属于对 Web 会话创建路径的侵入式改动，不在本预设范围内。
 
 ## 自定义
 
